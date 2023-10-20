@@ -29,6 +29,7 @@ async function run() {
     await client.connect();
 
     const coffeeCollection = client.db("coffeeDB").collection('coffee')
+    const userCollection = client.db("coffeeDB").collection('user')
     
 
     // read
@@ -85,6 +86,42 @@ async function run() {
       const result = await coffeeCollection.deleteOne(query);
       res.send(result)
     })
+
+    // users cerate
+
+    app.get('/users',async(req,res)=>{
+      const cursor = userCollection.find();
+      const users =await cursor.toArray();
+      res.send(users)
+    })
+
+    app.post('/users',async(req,res)=>{
+      const user = req.body
+      console.log(user)
+      const result = await userCollection.insertOne(user)
+      res.send(result)
+    })
+
+    app.patch('/users',async(req,res)=>{
+      const user =req.body
+      const filter = {email:user.email}
+      const updateDoc = {
+        $set:{
+          lastSignInTime: user.lastSignInTime
+        }
+      }
+      const result = await userCollection.updateOne(filter,updateDoc)
+      res.send(result)
+    })
+
+    app.delete('/users/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await userCollection.deleteOne(query);
+      res.send(result)
+    })
+
+    
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
